@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<head>
+  <title>Phasmo Help</title>
+  <style>
+    * {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #ccc;
+      font-size: xx-large;
+    }
+    body {
+      background-color: #113;
+    }
+    input,
+    select {
+      background-color: #334;
+    }
+    table {
+      border-collapse: collapse;
+      border: 1px solid #666;
+      margin: 10px 0px;
+    }
+    .borderIn th {
+      border: 1px solid#666;
+      background-color: #334;
+    }
+    .borderIn td {
+      border: 1px solid#666;
+      padding: 10px 10px;
+    }
+    .radiobutton {
+      display: inline-block;
+    }
+    input[type="radio"] {
+      display: none;
+    }
+    input[type="radio"] + label {
+      margin: 5px 0px;
+      padding: 4px;
+      background-color: #333;
+      border-radius: 5px;
+      border: 1px solid black;
+    }
+    input[type="radio"]:checked + label {
+      background-color: seagreen;
+    }
+    input[type="radio"] + label:hover {
+      background-color: #999;
+    }
+    .button:active {
+      background-color: seagreen;
+    }
+    .button {
+      padding: 6px;
+      margin-left: 20px;
+      background-color: #555;
+    }
+
+    .itemList {
+      display: flex;
+      flex-flow: row;
+      flex-wrap: wrap;
+      list-style: none;
+      border: 1px solid #555;
+      min-height: 25px;
+      margin: 10px 30px;
+      padding: 10px;
+    }
+    .itemList li {
+      margin: 4px;
+      padding: 6px;
+      border: 2px solid #999;
+      color: #999;
+      font-weight: bolder;
+      background-color: #555;
+    }
+    .itemText {
+      margin: 10px 30px;
+      font-weight: bolder;
+    }
+    input[type="checkbox"] {
+      display: none;
+    }
+    input[type="checkbox"] + label {
+      display: inline-block;
+      margin: 10px 5px;
+      padding: 6px;
+      font-weight: bolder;
+      color: #c66;
+      background-color: #811;
+      border-radius: 5px;
+      border: 3px solid #c66;
+    }
+    input[type="checkbox"]:checked + label {
+      background-color: #333;
+      border-color: #666;
+      color: #999;
+    }
+    input[type="checkbox"]:checked + label:hover {
+      color: #bbb;
+    }
+    input[type="checkbox"] + label:hover {
+      color: #faa;
+    }
+    .plus,
+    .minus {
+        display: inline-block;
+        width: 60px;
+        margin: 0px 20px;
+    }
+    .minus {
+        background-color: #410;
+        color: #920;
+    }
+    .plus {
+        background-color: #140;
+        color: #290;
+    }
+  </style>
+</head>
+<body>
+  <div style="padding-bottom: 10px">
+    <div class="radiobutton">
+      <input type="radio" id="selector1" value="selector1" name="selector" checked onclick="changeView('counter')" />
+      <label for="selector1">Photo Counter</label>
+    </div>
+    <div class="radiobutton">
+      <input type="radio" id="selector2" value="selector2" name="selector" onclick="changeView('randomizer')" />
+      <label for="selector2">Photo Randomizer</label>
+    </div>
+  </div>
+
+  <div id="PhotoRandomizer" style="display: none">
+    <div style="margin: 30px"></div>
+    <span class="itemText">Drawn items <input class="button" type="button" value="Draw new item" onclick="getRandomItem()" /></span>
+    <ul id="randomizerDrawnElements" class="itemList"></ul>
+    <span class="itemText">Item selector<input class="button" type="button" value="Reset" onclick="resetItems()" /></span>
+    <div id="randomizerElements" class="itemList"></div>
+  </div>
+
+  <div id="PhotoScores" style="width: fit-content">
+    <table style="width: 100%;"><tr><td>Reward:</td><td style="text-align: right;">$<span id="Reward">0</span></td></tr></table>
+    <div id="toomuchphotos" style="text-align: center; width: 100%;display: none;background-color: #811; color: #c66;"><span style="margin: 10px 4px;   font-weight: bold">TOO MUCH PHOTOS</span></div>
+    <table id="photoTable" class="borderIn">
+      <tr>
+        <th>Photo</th>
+        <th>Count</th>
+        <th>Stars</th>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    const photoStarToTypeValues = [
+      [80, 50, 30, 15, 20, 20, 10, 15],
+      [90, 60, 45, 35, 30, 30, 20, 25],
+      [100, 70, 60, 50, 40, 40, 30, 35],
+    ];
+    const types = ["GHOST", "BONE", "POSSESION", "FINGERS", "FOOTS", "INTERACTION", "BODY", "WATER"];
+    const scores = [
+      { minScore: 0, reward: 0 },
+      { minScore: 1, reward: 10 },
+      { minScore: 50, reward: 15 },
+      { minScore: 100, reward: 20 },
+      { minScore: 200, reward: 25 },
+      { minScore: 300, reward: 30 },
+      { minScore: 400, reward: 35 },
+      { minScore: 500, reward: 40 },
+    ];
+    const allItems = [
+      "EMF Reader",
+      "Spirit Box",
+      "Writing Book",
+      "D.O.T.S",
+      "Thermometer",
+      "UV Light",
+      "Video Camera",
+      "Glowstick",
+      "Crucifix",
+      "Motion Sensor",
+      "Parabolic Mic",
+      "Photo Camera",
+      "Salt",
+      "Sanity Pills",
+      "Smudge Sticks",
+      "Sound Sensor",
+      "Lighter",
+      "Head Camera",
+      "Tripod",
+      "Candle",
+      "Strong Flashlight",
+      "Old Flashlight",
+    ];
+    let drawnItems = [];
+    let itemPool = [];
+    function photoSelectOptions(select) {
+      let selectOption = "";
+      for (let i = 0; i < types.length; i++) {
+        selectOption += '<option value="' + i + '" ' + (select == i ? "selected" : "") + ">" + types[i] + "</option>";
+      }
+      return selectOption;
+    }
+    function recalculate() {
+      let score = 0;
+      let numberOfPhotos = 0;
+      for (let i = 0; i < 8; i++) {
+        const photoType = document.getElementById("photo" + i);
+        const photoCount = document.getElementById("photoCount" + i);
+        const photoStars = document.getElementById("photoStars" + i);
+        if (photoType.value >= 0 && photoType.value < types.length) {
+          score += photoStarToTypeValues[photoStars.value - 1][photoType.value] * photoCount.value;
+          numberOfPhotos += parseInt(photoCount.value);
+        }
+      }
+      let reward = 0;
+      scores.forEach((element) => {
+        if (element.minScore <= score) {
+          reward = element.reward;
+        }
+      });
+      const rewardElement = document.getElementById("Reward");
+      rewardElement.innerHTML = reward;
+      const photoCountWarning = document.getElementById("toomuchphotos");
+      photoCountWarning.style.display = numberOfPhotos > 10 ? "block" : "none";
+    }
+    for (let i = 0; i < 8; i++) {
+      const table = document.getElementById("photoTable");
+      const row = table.insertRow(i + 1);
+      const comboCell = row.insertCell(0);
+      comboCell.innerHTML = '<select id="photo' + i + '" onChange="recalculate();">' + photoSelectOptions(i) + "</select>";
+      const countCell = row.insertCell(1);
+      countCell.innerHTML = createNumberInput("photoCount" + i, 0, 10, 0, "recalculate();");
+      const starsCell = row.insertCell(2);
+      starsCell.innerHTML = createNumberInput("photoStars" + i, 1, 3, 3, "recalculate();");
+    }
+    function createNumberInput(id, min, max, value, onchangef) {
+      let html = '<input type="button" class="minus" value="-" onclick="changeNumber(-1,\'' + id + "')\"/>";
+      html += '<input id="' + id + '" type="number" min="' + min + '" max="' + max + '" value="' + value + '" onChange="' + onchangef + '"/>';
+      html += '<input type="button"  class="plus" value="+" onclick="changeNumber(1,\'' + id + "')\"/>";
+      return html;
+    }
+    function changeNumber(value, inputId) {
+      const input = document.getElementById(inputId);
+      value = parseInt(input.value) + parseInt(value);
+      if (input.max < value) value = input.max;
+      if (input.min > value) value = input.min;
+      input.value = value;
+      input.onchange();
+    }
+
+    itemPool = Array.from(allItems);
+    writeAllNotDrawnItems();
+    function changeView(view) {
+      const randomizer = document.getElementById("PhotoRandomizer");
+      const counter = document.getElementById("PhotoScores");
+      if (view == "counter") {
+        randomizer.style.display = "none";
+        counter.style.display = "block";
+      } else if (view == "randomizer") {
+        randomizer.style.display = "block";
+        counter.style.display = "none";
+      }
+    }
+    function getRandomItem() {
+      if (itemPool.length <= 0) return;
+      const drawnItem = itemPool[Math.floor(Math.random() * itemPool.length)];
+      const index = itemPool.indexOf(drawnItem);
+      itemPool.splice(index, 1);
+      drawnItems.push(drawnItem);
+
+      const listOfDrawnItems = document.getElementById("randomizerDrawnElements");
+      listOfDrawnItems.innerHTML = "";
+      const lastDrawnStyle = "border: 3px solid #290; color: #290; background-color: #140;";
+      for (let i = 0; i < drawnItems.length; i++) {
+        listOfDrawnItems.innerHTML += '<li class="itemlist" style="' + (i == 0 ? lastDrawnStyle : "") + '">' + drawnItems[drawnItems.length - i - 1] + "</li>";
+      }
+      writeAllNotDrawnItems();
+    }
+    function writeAllNotDrawnItems() {
+      const listOfPossibleItems = document.getElementById("randomizerElements");
+      listOfPossibleItems.innerHTML = "";
+      for (let i = 0; i < allItems.length; i++) {
+        const item = allItems[i];
+        if (drawnItems.indexOf(item) < 0) {
+          const checked = itemPool.indexOf(item) >= 0;
+          const checkboxname = "ichb" + i;
+          listOfPossibleItems.innerHTML +=
+            '<div><input type="checkbox" id="' +
+            checkboxname +
+            '" ' +
+            (checked ? "checked" : "") +
+            " onchange=\"clickedOnRandomizerCheckbox('" +
+            checkboxname +
+            "');\">" +
+            '<label for="ichb' +
+            i +
+            '">' +
+            item +
+            "</label></div>";
+        }
+      }
+    }
+    function clickedOnRandomizerCheckbox(id) {
+      const checkbox = document.getElementById(id);
+      const item = allItems[parseInt(id.substring(4))];
+      if (checkbox.checked) {
+        itemPool.push(item);
+      } else {
+        itemPool.splice(itemPool.indexOf(item), 1);
+      }
+    }
+    function resetItems() {
+      drawnItems = [];
+      itemPool = [];
+      itemPool = Array.from(allItems);
+      const listOfDrawnItems = document.getElementById("randomizerDrawnElements");
+      listOfDrawnItems.innerHTML = "";
+      writeAllNotDrawnItems();
+    }
+  </script>
+</body>
