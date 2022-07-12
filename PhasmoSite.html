@@ -198,14 +198,15 @@
       "Strong Flashlight",
       "Old Flashlight",
     ];
-    
+
     // INIT
 
     let drawnItems = [];
     let itemPool = [];
     itemPool = Array.from(allItems);
     writeAllNotDrawnItems();
-    for (let i = 0; i < 8; i++) {
+    const rowNumber = 10;
+    for (let i = 0; i < rowNumber; i++) {
       const table = document.getElementById("photoTable");
       const row = table.insertRow(i + 1);
       const comboCell = row.insertCell(0);
@@ -213,9 +214,9 @@
       const countCell = row.insertCell(1);
       countCell.innerHTML = createNumberInput("photoCount" + i, 0, 10, 0, "recalculate();");
       const starsCell = row.insertCell(2);
-      starsCell.innerHTML = createNumberInput("photoStars" + i, 1, 3, 3, "recalculate();");
+      starsCell.innerHTML = createNumberInput("photoStars" + i, 0, 3, 3, "recalculate();");
     }
-    
+
     function changeView(view) {
       const randomizer = document.getElementById("ItemRandomizer");
       const counter = document.getElementById("PhotoScores");
@@ -229,9 +230,10 @@
     }
 
     //PHOTOCOUNTER FUNCTiONS
-    
+
     function photoSelectOptions(select) {
       let selectOption = "";
+      if (select >= types.length) select = types.indexOf(types[5]);
       for (let i = 0; i < types.length; i++) {
         selectOption += '<option value="' + i + '" ' + (select == i ? "selected" : "") + ">" + types[i] + "</option>";
       }
@@ -240,12 +242,14 @@
     function recalculate() {
       let score = 0;
       let numberOfPhotos = 0;
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < rowNumber; i++) {
         const photoType = document.getElementById("photo" + i);
         const photoCount = document.getElementById("photoCount" + i);
         const photoStars = document.getElementById("photoStars" + i);
         if (photoType.value >= 0 && photoType.value < types.length) {
-          score += photoStarToTypeValues[photoStars.value - 1][photoType.value] * photoCount.value;
+          if (photoStars.value > 0) {
+            score += photoStarToTypeValues[photoStars.value - 1][photoType.value] * photoCount.value;
+          }
           numberOfPhotos += parseInt(photoCount.value);
         }
       }
