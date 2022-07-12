@@ -103,17 +103,17 @@
     }
     .plus,
     .minus {
-        display: inline-block;
-        width: 60px;
-        margin: 0px 20px;
+      display: inline-block;
+      width: 60px;
+      margin: 0px 20px;
     }
     .minus {
-        background-color: #410;
-        color: #920;
+      background-color: #410;
+      color: #920;
     }
     .plus {
-        background-color: #140;
-        color: #290;
+      background-color: #140;
+      color: #290;
     }
   </style>
 </head>
@@ -125,11 +125,11 @@
     </div>
     <div class="radiobutton">
       <input type="radio" id="selector2" value="selector2" name="selector" onclick="changeView('randomizer')" />
-      <label for="selector2">Photo Randomizer</label>
+      <label for="selector2">Item Randomizer</label>
     </div>
   </div>
 
-  <div id="PhotoRandomizer" style="display: none">
+  <div id="ItemRandomizer" style="display: none">
     <div style="margin: 30px"></div>
     <span class="itemText">Drawn items <input class="button" type="button" value="Draw new item" onclick="getRandomItem()" /></span>
     <ul id="randomizerDrawnElements" class="itemList"></ul>
@@ -138,8 +138,15 @@
   </div>
 
   <div id="PhotoScores" style="width: fit-content">
-    <table style="width: 100%;"><tr><td>Reward:</td><td style="text-align: right;">$<span id="Reward">0</span></td></tr></table>
-    <div id="toomuchphotos" style="text-align: center; width: 100%;display: none;background-color: #811; color: #c66;"><span style="margin: 10px 4px;   font-weight: bold">TOO MUCH PHOTOS</span></div>
+    <table style="width: 100%">
+      <tr>
+        <td>Reward:</td>
+        <td style="text-align: right">$<span id="Reward">0</span></td>
+      </tr>
+    </table>
+    <div id="toomuchphotos" style="text-align: center; width: 100%; display: none; background-color: #811; color: #c66">
+      <span style="margin: 10px 4px; font-weight: bold">TOO MUCH PHOTOS</span>
+    </div>
     <table id="photoTable" class="borderIn">
       <tr>
         <th>Photo</th>
@@ -150,6 +157,7 @@
   </div>
 
   <script>
+    // CONSTANTS
     const photoStarToTypeValues = [
       [80, 50, 30, 15, 20, 20, 10, 15],
       [90, 60, 45, 35, 30, 30, 20, 25],
@@ -190,8 +198,38 @@
       "Strong Flashlight",
       "Old Flashlight",
     ];
+    
+    // INIT
+
     let drawnItems = [];
     let itemPool = [];
+    itemPool = Array.from(allItems);
+    writeAllNotDrawnItems();
+    for (let i = 0; i < 8; i++) {
+      const table = document.getElementById("photoTable");
+      const row = table.insertRow(i + 1);
+      const comboCell = row.insertCell(0);
+      comboCell.innerHTML = '<select id="photo' + i + '" onChange="recalculate();">' + photoSelectOptions(i) + "</select>";
+      const countCell = row.insertCell(1);
+      countCell.innerHTML = createNumberInput("photoCount" + i, 0, 10, 0, "recalculate();");
+      const starsCell = row.insertCell(2);
+      starsCell.innerHTML = createNumberInput("photoStars" + i, 1, 3, 3, "recalculate();");
+    }
+    
+    function changeView(view) {
+      const randomizer = document.getElementById("ItemRandomizer");
+      const counter = document.getElementById("PhotoScores");
+      if (view == "counter") {
+        randomizer.style.display = "none";
+        counter.style.display = "block";
+      } else if (view == "randomizer") {
+        randomizer.style.display = "block";
+        counter.style.display = "none";
+      }
+    }
+
+    //PHOTOCOUNTER FUNCTiONS
+    
     function photoSelectOptions(select) {
       let selectOption = "";
       for (let i = 0; i < types.length; i++) {
@@ -222,16 +260,6 @@
       const photoCountWarning = document.getElementById("toomuchphotos");
       photoCountWarning.style.display = numberOfPhotos > 10 ? "block" : "none";
     }
-    for (let i = 0; i < 8; i++) {
-      const table = document.getElementById("photoTable");
-      const row = table.insertRow(i + 1);
-      const comboCell = row.insertCell(0);
-      comboCell.innerHTML = '<select id="photo' + i + '" onChange="recalculate();">' + photoSelectOptions(i) + "</select>";
-      const countCell = row.insertCell(1);
-      countCell.innerHTML = createNumberInput("photoCount" + i, 0, 10, 0, "recalculate();");
-      const starsCell = row.insertCell(2);
-      starsCell.innerHTML = createNumberInput("photoStars" + i, 1, 3, 3, "recalculate();");
-    }
     function createNumberInput(id, min, max, value, onchangef) {
       let html = '<input type="button" class="minus" value="-" onclick="changeNumber(-1,\'' + id + "')\"/>";
       html += '<input id="' + id + '" type="number" min="' + min + '" max="' + max + '" value="' + value + '" onChange="' + onchangef + '"/>';
@@ -247,19 +275,8 @@
       input.onchange();
     }
 
-    itemPool = Array.from(allItems);
-    writeAllNotDrawnItems();
-    function changeView(view) {
-      const randomizer = document.getElementById("PhotoRandomizer");
-      const counter = document.getElementById("PhotoScores");
-      if (view == "counter") {
-        randomizer.style.display = "none";
-        counter.style.display = "block";
-      } else if (view == "randomizer") {
-        randomizer.style.display = "block";
-        counter.style.display = "none";
-      }
-    }
+    // ITEM RANDOMIZER FUNCTIONS
+
     function getRandomItem() {
       if (itemPool.length <= 0) return;
       const drawnItem = itemPool[Math.floor(Math.random() * itemPool.length)];
