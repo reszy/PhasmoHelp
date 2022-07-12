@@ -154,6 +154,10 @@
         <th>Stars</th>
       </tr>
     </table>
+    <div style="width: 100%; text-align: center">
+      <div style="height: 40px"></div>
+      <input style="width: 30%" type="button" value="Reset" onclick="resetPhotoCounter()" />
+    </div>
   </div>
 
   <script>
@@ -277,6 +281,17 @@
       if (input.min > value) value = input.min;
       input.value = value;
       input.onchange();
+    }
+    function resetPhotoCounter() {
+      const table = document.getElementById("photoTable");
+      for (let i = 0; i < rowNumber; i++) {
+        const row = table.rows[i + 1];
+        const comboCell = row.cells[0];
+        comboCell.innerHTML = '<select id="photo' + i + '" onChange="recalculate();">' + photoSelectOptions(i) + "</select>";
+        const countCell = (document.getElementById("photoCount" + i).value = 0);
+        const starsCell = (document.getElementById("photoStars" + i).value = 3);
+      }
+      recalculate();
     }
 
     // ITEM RANDOMIZER FUNCTIONS
