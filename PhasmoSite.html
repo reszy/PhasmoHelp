@@ -120,12 +120,12 @@
 <body>
   <div style="padding-bottom: 10px">
     <div class="radiobutton">
-      <input type="radio" id="selector1" value="selector1" name="selector" checked onclick="changeView('counter')" />
-      <label for="selector1">Photo Counter</label>
+      <input type="radio" id="selector-photos" value="selector-photos" name="selector" checked onclick="changeView('counter')" />
+      <label for="selector-photos">Photo Counter</label>
     </div>
     <div class="radiobutton">
-      <input type="radio" id="selector2" value="selector2" name="selector" onclick="changeView('randomizer')" />
-      <label for="selector2">Item Randomizer</label>
+      <input type="radio" id="selector-randomizer" value="selector-randomizer" name="selector" onclick="changeView('randomizer')" />
+      <label for="selector-randomizer">Item Randomizer</label>
     </div>
   </div>
 
@@ -221,15 +221,27 @@
       starsCell.innerHTML = createNumberInput("photoStars" + i, 0, 3, 3, "recalculate();");
     }
 
+    if(getAnchor() == "PhotoRandomizer") {
+      changeView('randomizer');
+      document.getElementById("selector-randomizer").checked = true;
+    }
+
+    //GENERAL FUNCTIONS
+
+    function getAnchor() {
+      return document.URL.split("#").length > 1 ? document.URL.split("#")[1] : null;
+    }
     function changeView(view) {
       const randomizer = document.getElementById("ItemRandomizer");
       const counter = document.getElementById("PhotoScores");
       if (view == "counter") {
         randomizer.style.display = "none";
         counter.style.display = "block";
+        location.hash = "PhotoCounter";
       } else if (view == "randomizer") {
         randomizer.style.display = "block";
         counter.style.display = "none";
+        location.hash = "PhotoRandomizer";
       }
     }
 
